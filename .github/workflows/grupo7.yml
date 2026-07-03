@@ -2,57 +2,63 @@ name: Grupo 7
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches:
+      - main
+
+env:
+  GRUPO: "Grupo 7"
+  MENSAJE: "Hola a todos desde el workflow"
+  MOSTRAR_DESPEDIDA: "true"
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    env:
-      VARIABLE_UNO: "Sistemas"
-      VARIABLE_DOS: "UTP"
-      VARIABLE_TRES: "Activo"
-
     steps:
-      - name: Inicializar archivo JSON
-        run: |
-          echo "{" > resultado.json
-          echo "  \"grupo\": \"Grupo 7\"," >> resultado.json
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
       - name: Prueba de mensajes
         run: |
-          echo "Hola Grupo 7, bienvenidos al workflow de automatización."
-          echo "  \"saludo\": \"Hola Grupo 7, bienvenidos al workflow de automatización.\"," >> resultado.json
+          echo "Saludo para el ${GRUPO}"
+          echo "${MENSAJE}"
+
       - name: Variables creada en el workflow
         run: |
-          echo "Var 1: ${{ env.VARIABLE_UNO }}"
-          echo "Var 2: ${{ env.VARIABLE_DOS }}"
-          echo "Var 3: ${{ env.VARIABLE_TRES }}"
-          echo "  \"variables_env\": {" >> resultado.json
-          echo "    \"var1\": \"${{ env.VARIABLE_UNO }}\"," >> resultado.json
-          echo "    \"var2\": \"${{ env.VARIABLE_DOS }}\"," >> resultado.json
-          echo "    \"var3\": \"${{ env.VARIABLE_TRES }}\"" >> resultado.json
-          echo "  }," >> resultado.json
+          echo "Variable GRUPO: ${GRUPO}"
+          echo "Variable MENSAJE: ${MENSAJE}"
+          echo "Variable MOSTRAR_DESPEDIDA: ${MOSTRAR_DESPEDIDA}"
+
       - name: Variables del entorno del Github Actions
         run: |
-          echo "Repositorio: ${{ github.repository }}"
-          echo "Dueño/Actor: ${{ github.actor }}"
-          echo "ID del Run: ${{ github.run_id }}"
-          echo "  \"variables_github\": {" >> resultado.json
-          echo "    \"repositorio\": \"${{ github.repository }}\"," >> resultado.json
-          echo "    \"dueno\": \"${{ github.actor }}\"," >> resultado.json
-          echo "    \"run_id\": \"${{ github.run_id }}\"" >> resultado.json
-          echo "  }," >> resultado.json
+          echo "Repositorio (GITHUB_REPOSITORY): ${GITHUB_REPOSITORY}"
+          echo "Actor (GITHUB_ACTOR): ${GITHUB_ACTOR}"
+          echo "Workflow (GITHUB_WORKFLOW): ${GITHUB_WORKFLOW}"
 
       - name: Con Despedida
-        if: ${{ env.VARIABLE_TRES == 'Activo' }}
+        if: ${{ env.MOSTRAR_DESPEDIDA == 'true' }}
         run: |
-          echo "¡Hasta luego Grupo 7! Gracias por usar GitHub Actions."
-          echo "  \"despedida\": \"¡Hasta luego Grupo 7! Gracias por usar GitHub Actions.\"" >> resultado.json
-          echo "}" >> resultado.json
+          echo "Despedida para el ${GRUPO}: ¡Hasta luego!"
 
       - name: Sin despedida
-        if: ${{ env.VARIABLE_TRES == 'Inactivo' }}
+        if: ${{ env.MOSTRAR_DESPEDIDA == 'false' }}
         run: |
-          echo "Este mensaje no se leerá ni se guardará."
+          echo "Este mensaje no debería mostrarse porque MOSTRAR_DESPEDIDA es true."
 
-      - name: Mostrar resultado JSON plano
-        run: cat resultado.json
+      - name: Crear archivo JSON con resultados
+        run: |
+          cat << 'EOF' > resultado_grupo7.json
+          {
+            "grupo": "${GRUPO}",
+            "mensaje": "${MENSAJE}",
+            "mostrar_despedida": "${MOSTRAR_DESPEDIDA}",
+            "github_repository": "${GITHUB_REPOSITORY}",
+            "github_actor": "${GITHUB_ACTOR}",
+            "github_workflow": "${GITHUB_WORKFLOW}"
+          }
+          EOF
+
+      - name: Subir JSON como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado-grupo7
+          path: resultado_grupo7.json
