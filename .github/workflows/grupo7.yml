@@ -1,1 +1,69 @@
+name: Grupo 03
 
+on:
+  push:
+    branches:
+      - main
+
+env:
+  GRUPO: Grupo 03
+  CURSO: DevOps
+  DESPEDIDA: true
+
+jobs:
+  practica:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prueba de mensajes
+        run: |
+          echo "Hola $GRUPO"
+
+      - name: Variables creada en el workflow
+        run: |
+          echo "Grupo: $GRUPO"
+          echo "Curso: $CURSO"
+          echo "Despedida: $DESPEDIDA"
+
+      - name: Variables del entorno del Github Actions
+        run: |
+          echo "Repositorio: $GITHUB_REPOSITORY"
+          echo "Owner: $GITHUB_REPOSITORY_OWNER"
+          echo "Workflow: $GITHUB_WORKFLOW"
+
+      - name: Con Despedida
+        if: env.DESPEDIDA == 'true'
+        run: |
+          echo "Hasta luego Grupo"
+
+      - name: Sin despedida
+        if: env.DESPEDIDA == 'false'
+        run: |
+          echo "Este mensaje no debe mostrarse"
+
+      - name: Crear archivo JSON
+        run: |
+          cat <<EOF > resultado.json
+          {
+            "saludo":"Hola Grupo",
+            "grupo":"$GRUPO",
+            "curso":"$CURSO",
+            "despedida":"$DESPEDIDA",
+            "repositorio":"$GITHUB_REPOSITORY",
+            "owner":"$GITHUB_REPOSITORY_OWNER",
+            "workflow":"$GITHUB_WORKFLOW"
+          }
+          EOF
+
+          cat resultado.json
+
+      - name: Subir archivo JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado-json
+          path: resultado.json
